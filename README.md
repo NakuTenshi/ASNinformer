@@ -1,7 +1,7 @@
 # ASNinformer
 
 <div align="center">
-  <img src="src/logo.png" alt="ASNinformer Logo"  height="80"/>
+  <img src="src/logo.png" alt="ASNinformer Logo"  height="90"/>
   <p>ASNinformer -- a lightweight tool that takes IPs as input, looks up their ASN information, and groups results by ASN in a JSON file.</p>
 </div>
 
