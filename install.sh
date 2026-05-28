@@ -9,7 +9,7 @@ file='./ASNinformer.py'
 name="$(basename "${file%.py}")"
 
 ## Requirements
-pip3 install requests rich
+python3 -m pip3 install rich
 
 cp -r $file /bin/$name
 echo "Done."
