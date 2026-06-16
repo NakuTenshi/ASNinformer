@@ -12,7 +12,7 @@ from rich import print as pprint
 parser = argparse.ArgumentParser()
 parser.add_argument("-p", "--proxy", help="proxy ip for using")
 parser.add_argument('-v', action="store_true", help="prints result")
-parser.add_argument('-o', help="file name for saving results", default="./asn-result.txt")
+parser.add_argument('-o', help="file name for saving results", default="./asn-result.json")
 
 args, _ = parser.parse_known_args()
 proxy_ip = args.proxy
