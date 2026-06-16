@@ -74,9 +74,9 @@ def checkASN(ip):
                 exit()
 
 if __name__ == "__main__":
+  print("") # a new line for don't removing line of command 
   # take ips
   try:
-      
     if not sys.stdin.isatty():
         for line in sys.stdin:
             ip = line.strip()
@@ -90,7 +90,7 @@ if __name__ == "__main__":
         file_name = __file__.split('/')[-1]
         print("no input provided")
         print("Usage:")
-
+        print(f'    {file_name} -h')
         print(f'    echo 1.1.1.1 | {file_name}')
         print(f'    cat ips.txt | {file_name}')
         print(f'    {file_name} 1.1.1.1')
@@ -105,8 +105,8 @@ if __name__ == "__main__":
         print("Done.")
         print(f"the result saved at {outputFileName}")
 
-    with open(outputFileName, "w") as f:
-        json.dump(ASNs, f, indent=2)
+        with open(outputFileName, "w") as f:
+            json.dump(ASNs, f, indent=2)
     
   except KeyboardInterrupt:
     print("\nBye :)")
