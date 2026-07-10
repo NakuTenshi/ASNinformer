@@ -1,2 +1,4 @@
-asn-result.txt
+asn-result.json
 venv
+test.py
+test.ips
