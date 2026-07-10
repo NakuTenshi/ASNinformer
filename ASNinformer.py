@@ -5,8 +5,6 @@ import sys
 import json
 import requests
 import argparse
-from rich import print as pprint
-
 
 
 parser = argparse.ArgumentParser()
@@ -31,22 +29,16 @@ ip_regex = re.compile(
     r"(?:25[0-5]|2[0-4]\d|1?\d?\d)\b"
 )
 
+def checkASN(line_input):
+    global ASNs
 
-def cleanLine():
-    sys.stdout.write("\033[F")  # move cursor up one line
-    sys.stdout.write("\033[K")  # clear line
-
-def checkASN(ip):
-    if ip_regex.match(ip):
-        cleanLine()
-        print(ip)
-        base_url = f"http://ip2asn.ipinfo.app/lookup/{ip}"
-
+    if ip_regex.match(line_input): # it was an ip
+        base_url = f"http://ip2asn.ipinfo.app/lookup/{line_input}"
         try:
             response = requests.get(base_url, verify=False)
 
         except requests.exceptions.ConnectionError:
-            checkASN(ip)
+            checkASN(line_input)
         else:
             if response.status_code == 200:
                 data = response.json()
@@ -54,28 +46,49 @@ def checkASN(ip):
                 if data["announcedBy"]: # has data
                   company_name = data["announcedBy"][0]["name"]
                   asn_name = f'AS{data["announcedBy"][0]["asn"]}'
-                  cidr = data["announcedBy"][0]["subnet"]
+                  bgp_url = f"https://bgp.he.net/{asn_name}"                  
+                  ip_range = data["announcedBy"][0]["subnet"]
 
                   if not asn_name in ASNs.keys():
                       ASNs[asn_name] = {
-                          "ASN": asn_name,
-                          "ASN url": f"https://bgp.he.net/{asn_name}",
-                          "CIDR": cidr,
                           "company's name": company_name,
-                          "IPs": [ip]
+                          "ASN": asn_name,
+                          "ASN url": bgp_url,
+                          "Provided IP Ranges": [ip_range],
+                          "Provided IP": [line_input]
                       }
                   else:
-                      ASNs[asn_name]["IPs"].append(ip)
+                    ASNs[asn_name]["Provided IP"].append(line_input)
+                    if ip_range not in ASNs[asn_name]["Provided IP Ranges"]: 
+                        ASNs[asn_name]["Provided IP Ranges"].append(ip_range)
 
-            else:
-                print(response.status_code)
-                print(response.content)
-                print('[ERROR] the connection is not ok')
-                exit()
+    elif line_input.lower().startswith("as"): # it's ASN
+        if line_input not in ASNs.keys():
+            asn_details_url = f"https://asn.ipinfo.app/api/json/details/{line_input}"
+            asn_ranges_url = f"https://asn.ipinfo.app/api/json/list/{line_input}"
+
+            asn_details_response = requests.get(asn_details_url)
+            asn_ranges_reponse = requests.get(asn_ranges_url)
+
+            if asn_details_response.status_code == 200 and asn_details_response.status_code == 200:
+                details_data = asn_details_response.json()
+                ranges_data = asn_ranges_reponse.json()
+
+                company_name = details_data["name"]
+                asn_name = f'AS{details_data["asn"]}'
+                bgp_url = f"https://bgp.he.net/{asn_name}"                  
+                ip_ranges = ranges_data["list"]
+
+                ASNs[asn_name] = {
+                    "Company's Name": company_name,
+                    "ASN": asn_name,
+                    "ASN Url": bgp_url,
+                    "IP Ranges": ip_ranges,
+                }
+
 
 if __name__ == "__main__":
-  print("") # a new line for don't removing line of command 
-  # take ips
+  # take input
   try:
     if not sys.stdin.isatty():
         for line in sys.stdin:
@@ -91,23 +104,24 @@ if __name__ == "__main__":
         print("no input provided")
         print("Usage:")
         print(f'    {file_name} -h')
+
+        print(f'Get ip\'s information:')
         print(f'    echo 1.1.1.1 | {file_name}')
         print(f'    cat ips.txt | {file_name}')
         print(f'    {file_name} 1.1.1.1')
         print(f'    {file_name} 1.1.1.1 8.8.8.8')
-
+        
+        print(f'Get ASN\'s information: ')
+        print(f'    echo AS13335 | {file_name}')
+        print(f'    cat ASNs.txt | {file_name}')
+        print(f'    {file_name} AS13335')
+        print(f'    {file_name} AS13335 AS15169')
         exit()
 
-    cleanLine()
-    if verbose:
-        pprint(ASNs)
-    else:
-        print("Done.")
-        print(f"the result saved at {outputFileName}")
-
-        with open(outputFileName, "w") as f:
-            json.dump(ASNs, f, indent=2)
-    
+    print(json.dumps(ASNs))
+    with open(outputFileName, "w") as f:
+        json.dump(ASNs, f)
+        
   except KeyboardInterrupt:
     print("\nBye :)")
     exit()
