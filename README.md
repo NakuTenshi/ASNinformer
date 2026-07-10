@@ -46,7 +46,7 @@ chmod +x ASNinformer.py
 then install the script:
 
 ```bash
-sudo ./install
+./install
 ```
 
 ------------------------------------------------------------------------
